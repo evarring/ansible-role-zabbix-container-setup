@@ -1,0 +1,7 @@
+# SPDX-License-Identifier: MIT-0
+---
+# vars file for zabbix_container_setup
+
+zabbix_container_setup_server_network_mode: "{{ zabbix_container_setup_server_networks[0].name }}"
+zabbix_container_setup_frontend_network_mode: "{{ zabbix_container_setup_frontend_networks[0].name }}"
+zabbix_container_setup_agent2_network_mode: "{{ zabbix_container_setup_agent2_networks[0].name }}"

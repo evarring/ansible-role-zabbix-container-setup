@@ -1,0 +1,154 @@
+# SPDX-License-Identifier: MIT-0
+---
+# tasks file for zabbix_container_setup
+
+# https://github.com/zabbix/zabbix-docker
+
+# https://hub.docker.com/r/zabbix/zabbix-server-mysql
+
+# https://hub.docker.com/r/zabbix/zabbix-web-service
+
+# https://hub.docker.com/r/zabbix/zabbix-web-nginx-mysql
+
+# https://hub.docker.com/r/zabbix/zabbix-agent2
+
+- name: Ensure zabbix common container volume directories exist
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+    owner: "1997"
+    group: "1995"
+  loop:
+    - "{{ zabbix_container_setup_common_dir }}/enc"
+  become: true
+
+- name: Ensure zabbix server container volume directories exist
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+    owner: "1997"
+    group: "1995"
+  loop:
+    - "{{ zabbix_container_setup_server_dir }}"
+    - "{{ zabbix_container_setup_server_dir }}/alertscripts"
+    - "{{ zabbix_container_setup_server_dir }}/externalscripts"
+    - "{{ zabbix_container_setup_server_dir }}/modules"
+    - "{{ zabbix_container_setup_server_dir }}/ssh_keys"
+    - "{{ zabbix_container_setup_server_dir }}/ssl/certs"
+    - "{{ zabbix_container_setup_server_dir }}/ssl/keys"
+    - "{{ zabbix_container_setup_server_dir }}/ssl/ssl_ca"
+    - "{{ zabbix_container_setup_server_dir }}/snmptraps"
+    - "{{ zabbix_container_setup_server_dir }}/mibs"
+    - "{{ zabbix_container_setup_server_dir }}/export"
+  become: true
+
+- name: Ensure zabbix frontend container volume directories exist
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+    owner: "1997"
+    group: "1995"
+  loop:
+    - "{{ zabbix_container_setup_frontend_dir }}"
+    - "{{ zabbix_container_setup_frontend_dir }}/ssl"
+    - "{{ zabbix_container_setup_frontend_dir }}/ssl/nginx"
+    - "{{ zabbix_container_setup_frontend_dir }}/web"
+    - "{{ zabbix_container_setup_frontend_dir }}/web/certs"
+  become: true
+
+- name: Ensure zabbix agent2 container volume directories exist
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+    owner: "1997"
+    group: "1995"
+  loop:
+    - "{{ zabbix_container_setup_agent2_dir }}"
+    - "{{ zabbix_container_setup_agent2_dir }}/zabbix_agentd.d"
+    - "{{ zabbix_container_setup_agent2_dir }}/buffer"
+  become: true
+
+- name: Create networks
+  community.docker.docker_network:
+    name: "{{ item.name }}"
+  loop: "{{ zabbix_container_setup_server_networks }}"
+  become: true
+
+- name: Create zabbix server container
+  community.docker.docker_container:
+    name: "{{ zabbix_container_setup_server_name }}"
+    image: "{{ zabbix_container_setup_server_image }}"
+    state: "{{ zabbix_container_setup_server_state | default('started') }}"
+    capabilities: "{{ zabbix_container_setup_server_capabilities | default(omit) }}"
+    network_mode: "{{ zabbix_container_setup_server_network_mode }}"
+    networks: "{{ zabbix_container_setup_server_networks }}"
+    healthcheck: "{{ zabbix_container_setup_server_healthcheck | default(omit) }}"
+    recreate: "{{ zabbix_container_setup_server_recreate }}"
+    privileged: "{{ zabbix_container_setup_server_privileged }}"
+    user: "{{ zabbix_container_setup_user_uid_gid | default(omit) }}"
+    ports: "{{ zabbix_container_setup_server_ports }}"
+    volumes:
+      - "{{ zabbix_container_setup_server_dir }}/alertscripts/:/usr/lib/zabbix/alertscripts/:rw,Z"
+      - "{{ zabbix_container_setup_server_dir }}/externalscripts/:/usr/lib/zabbix/externalscripts/:rw,Z"
+      - "{{ zabbix_container_setup_server_dir }}/modules/:/var/lib/zabbix/modules/:rw,Z"
+      - "{{ zabbix_container_setup_server_dir }}/ssl/certs/:/var/lib/zabbix/ssl/certs/:rw,Z"
+      - "{{ zabbix_container_setup_server_dir }}/ssl/keys/:/var/lib/zabbix/ssl/keys/:rw,Z"
+      - "{{ zabbix_container_setup_server_dir }}/ssl/ssl_ca/:/var/lib/zabbix/ssl/ssl_ca/:rw,Z"
+      - "{{ zabbix_container_setup_server_dir }}/snmptraps/:/var/lib/zabbix/snmptraps/:rw,Z"
+      - "{{ zabbix_container_setup_server_dir }}/mibs/:/var/lib/zabbix/mibs/:rw,Z"
+      - "{{ zabbix_container_setup_common_dir }}/enc/:/var/lib/zabbix/enc/:rw,z"
+    env: "{{ zabbix_container_setup_server_env | default(omit) }}"
+    labels: "{{ zabbix_container_setup_server_labels }}"
+    restart_policy: "{{ zabbix_container_setup_server_restart_policy }}"
+
+- name: Create zabbix frontend container
+  community.docker.docker_container:
+    name: "{{ zabbix_container_setup_frontend_name }}"
+    image: "{{ zabbix_container_setup_frontend_image }}"
+    state: "{{ zabbix_container_setup_frontend_state | default('started') }}"
+    network_mode: "{{ zabbix_container_setup_frontend_network_mode }}"
+    networks: "{{ zabbix_container_setup_frontend_networks }}"
+    healthcheck: "{{ zabbix_container_setup_frontend_healthcheck | default(omit) }}"
+    recreate: "{{ zabbix_container_setup_frontend_recreate }}"
+    privileged: "{{ zabbix_container_setup_frontend_privileged }}"
+    user: "{{ zabbix_container_setup_frontend_user_uid_gid | default(omit) }}"
+    ports: "{{ zabbix_container_setup_frontend_ports | default(omit) }}"
+    volumes:
+      - "{{ zabbix_container_setup_common_dir }}/enc/:/var/lib/zabbix/enc/:rw,z"
+    env: "{{ zabbix_container_setup_frontend_env | default(omit) }}"
+    labels: "{{ zabbix_container_setup_frontend_labels }}"
+    restart_policy: "{{ zabbix_container_setup_frontend_restart_policy }}"
+
+- name: Create zabbix agent2 container
+  community.docker.docker_container:
+    name: "{{ zabbix_container_setup_agent2_name }}"
+    image: "{{ zabbix_container_setup_agent2_image }}"
+    state: "{{ zabbix_container_setup_agent2_state | default('started') }}"
+    network_mode: "{{ zabbix_container_setup_agent2_network_mode }}"
+    networks: "{{ zabbix_container_setup_agent2_networks }}"
+    healthcheck: "{{ zabbix_container_setup_agent2_healthcheck | default(omit) }}"
+    recreate: "{{ zabbix_container_setup_agent2_recreate }}"
+    privileged: "{{ zabbix_container_setup_agent2_privileged }}"
+    user: "{{ zabbix_container_setup_agent2_user_uid_gid | default(omit) }}"
+    ports: "{{ zabbix_container_setup_agent2_ports | default(omit) }}"
+    volumes:
+      - "{{ zabbix_container_setup_agent2_dir }}/zabbix_agentd.d/:/etc/zabbix/zabbix_agentd.d/:rw,Z"
+      - "{{ zabbix_container_setup_agent2_dir }}/buffer/:/var/lib/zabbix/buffer/:rw,Z"
+      - "{{ zabbix_container_setup_common_dir }}/enc/:/var/lib/zabbix/enc/:rw,z"
+    env: "{{ zabbix_container_setup_agent2_env | default(omit) }}"
+    labels: "{{ zabbix_container_setup_agent2_labels }}"
+    restart_policy: "{{ zabbix_container_setup_agent2_restart_policy }}"
+
+- name: Enable linger for user {{ ansible_user | default('root') }}
+  ansible.builtin.command:
+    argv:
+      - /usr/bin/loginctl
+      - enable-linger
+      - "{{ ansible_user | default('root') }}"
+    creates: "/var/lib/systemd/linger/{{ ansible_user | default('root') }}"
+  become: true
+  when: ansible_virtualization_type != "container"

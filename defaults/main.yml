@@ -1,0 +1,92 @@
+# SPDX-License-Identifier: MIT-0
+---
+# defaults file for zabbix_container_setup
+
+# common
+zabbix_container_setup_common_dir: /srv/zabbix-common
+
+zabbix_container_setup_user_uid_gid: "1997:1995"
+
+# zabbix server
+zabbix_container_setup_server_name: zabbix-server
+
+zabbix_container_setup_server_networks:
+  - name: zabbix
+  - name: mariadb
+
+zabbix_container_setup_server_capabilities:
+  - NET_RAW
+
+zabbix_container_setup_server_image: zabbix/zabbix-server-mysql:alpine-latest
+
+zabbix_container_setup_server_labels:
+  traefik.enable: "false"
+
+zabbix_container_setup_server_dir: /srv/zabbix-server
+
+zabbix_container_setup_server_recreate: true
+zabbix_container_setup_server_privileged: false
+zabbix_container_setup_server_restart_policy: unless-stopped
+
+zabbix_container_setup_server_ports:
+  - "10051:10051"
+
+zabbix_container_setup_server_env:
+  DB_SERVER_HOST: "mariadb"
+  ZBX_DB_NAME: "zabbixdb"
+  MYSQL_USER: "databaseuser"
+  MYSQL_DATABASE: "databasename"
+  MYSQL_PASSWORD: "password"
+
+# zabbix frontend
+zabbix_container_setup_frontend_name: zabbix-frontend
+
+zabbix_container_setup_frontend_networks:
+  - name: zabbix
+  - name: mariadb
+  - name: traefik
+
+zabbix_container_setup_frontend_image: zabbix/zabbix-web-apache-mysql:alpine-latest
+
+zabbix_container_setup_frontend_labels:
+  traefik.enable: "false"
+
+zabbix_container_setup_frontend_dir: /srv/zabbix-frontend
+
+zabbix_container_setup_frontend_recreate: true
+zabbix_container_setup_frontend_privileged: false
+zabbix_container_setup_frontend_restart_policy: unless-stopped
+
+zabbix_container_setup_frontend_env:
+  ZBX_SERVER_HOST: "zabbix-server"
+  DB_SERVER_HOST: "mariadb"
+  DB_SERVER_PORT: "3306"
+  MYSQL_USER: "databaseuser"
+  MYSQL_DATABASE: "databasename"
+  MYSQL_PASSWORD: "password"
+  ZBX_SERVER_NAME: "Zabbix server"
+  PHP_TZ: "Europe/Oslo"
+
+# zabbix agent2
+zabbix_container_setup_agent2_name: zabbix-agent2
+
+zabbix_container_setup_agent2_networks:
+  - name: zabbix
+
+zabbix_container_setup_agent2_image: zabbix/zabbix-agent2:alpine-latest
+
+zabbix_container_setup_agent2_labels:
+  traefik.enable: "false"
+
+zabbix_container_setup_agent2_dir: /srv/zabbix-agent2
+
+zabbix_container_setup_agent2_ports:
+  - 10050:10050
+
+zabbix_container_setup_agent2_recreate: true
+zabbix_container_setup_agent2_privileged: false
+zabbix_container_setup_agent2_restart_policy: unless-stopped
+
+zabbix_container_setup_agent2_env:
+  ZBX_HOSTNAME: "Zabbix server"
+  ZBX_SERVER_HOST: "zabbix-server"
