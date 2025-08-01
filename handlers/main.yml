@@ -1,3 +1,14 @@
 # SPDX-License-Identifier: MIT-0
 ---
 # handlers file for zabbix_container_setup
+
+- name: Stop containers
+  community.docker.docker_container:
+    name: "{{ zabbixname_item }}"
+    state: "stopped"
+  loop:
+    - "{{ zabbix_container_setup_frontend_name }}"
+    - "{{ zabbix_container_setup_server_name }}"
+    - "{{ zabbix_container_setup_agent2_name }}"
+  loop_control:
+    loop_var: zabbixname_item

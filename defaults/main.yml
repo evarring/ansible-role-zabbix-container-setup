@@ -24,7 +24,7 @@ zabbix_container_setup_server_labels:
 
 zabbix_container_setup_server_dir: /srv/zabbix-server
 
-zabbix_container_setup_server_recreate: true
+zabbix_container_setup_server_recreate: false
 zabbix_container_setup_server_privileged: false
 zabbix_container_setup_server_restart_policy: unless-stopped
 
@@ -53,7 +53,7 @@ zabbix_container_setup_frontend_labels:
 
 zabbix_container_setup_frontend_dir: /srv/zabbix-frontend
 
-zabbix_container_setup_frontend_recreate: true
+zabbix_container_setup_frontend_recreate: false
 zabbix_container_setup_frontend_privileged: false
 zabbix_container_setup_frontend_restart_policy: unless-stopped
 
@@ -83,7 +83,7 @@ zabbix_container_setup_agent2_dir: /srv/zabbix-agent2
 zabbix_container_setup_agent2_ports:
   - 10050:10050
 
-zabbix_container_setup_agent2_recreate: true
+zabbix_container_setup_agent2_recreate: false
 zabbix_container_setup_agent2_privileged: false
 zabbix_container_setup_agent2_restart_policy: unless-stopped
 

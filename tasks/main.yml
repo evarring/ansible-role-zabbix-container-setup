@@ -12,6 +12,35 @@
 
 # https://hub.docker.com/r/zabbix/zabbix-agent2
 
+- name: Pull the configured images if they haven't already and stop containers if changed
+  notify: Stop containers
+  block:
+    - name: Pull the configured images if they haven't already
+      community.docker.docker_image:
+        name: "{{ zabbiximage_item }}"
+        source: pull
+      loop:
+        - "{{ zabbix_container_setup_server_image }}"
+        - "{{ zabbix_container_setup_frontend_image }}"
+        - "{{ zabbix_container_setup_agent2_image }}"
+      loop_control:
+        loop_var: zabbiximage_item
+
+- name: Ensure zabbix containers are stopped when recreating
+  when: >
+    zabbix_container_setup_server_recreate or
+    zabbix_container_setup_frontend_recreate or
+    zabbix_container_setup_agent2_recreate
+  block:
+    - name: Notify the handler
+      ansible.builtin.debug:
+        msg: "Stopping containers for recreation"
+      notify: Stop containers
+      changed_when: true
+
+    - name: Flush handlers immediately
+      ansible.builtin.meta: flush_handlers
+
 - name: Ensure zabbix common container volume directories exist
   ansible.builtin.file:
     path: "{{ item }}"
