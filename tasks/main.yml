@@ -25,6 +25,11 @@
         - "{{ zabbix_container_setup_agent2_image }}"
       loop_control:
         loop_var: zabbiximage_item
+      register: zabbix_image_pull_result
+
+    - name: Flush handlers immediately
+      ansible.builtin.meta: flush_handlers
+      when: zabbix_image_pull_result.changed # noqa: no-handler
 
 - name: Ensure zabbix containers are stopped when recreating
   when: >
