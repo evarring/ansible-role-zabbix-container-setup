@@ -55,7 +55,7 @@ zabbix_container_setup_frontend_labels:
   traefik.enable: "false"
 
 zabbix_container_setup_frontend_cpus: 0.5
-zabbix_container_setup_frontend_memory: 128M
+zabbix_container_setup_frontend_memory: 512M
 
 zabbix_container_setup_frontend_dir: /srv/zabbix-frontend
 
